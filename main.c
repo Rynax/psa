@@ -115,6 +115,8 @@ static void parse_dir_list(DIR_TREE_ST *, FILE_LIST_ST **);
 static void parse_file(FILE_LIST_ST **, const char *, off_t);
 static OUT_LIST_ST* link_func(FILE_LIST_ST *, const char *);
 static void build_func_tree(FILE_LIST_ST *, FUNC_LIST_ST *, OUT_LIST_ST *);
+void out_list_color(BTD_NODE*);
+void out_list_nocolor(BTD_NODE*);
 
 char *func_name = "main";   //全局选项: 主函数名
 char *tfunc_name = NULL;    //全局选项: 标记函数名
@@ -127,8 +129,19 @@ int verbose = 2;            //全局选项: 输出信息过滤
 #define ERR(...)  if(verbose >= 2) fprintf(stderr, __VA_ARGS__)
 #define WARN(...) if(verbose >= 3) fprintf(stdout, __VA_ARGS__)
 #define INFO(...) if(verbose >= 4) fprintf(stdout, __VA_ARGS__)
+int colors = 1;             //全局选项: 颜色支持
+void (*out_list)(BTD_NODE*) = out_list_color;
 
-void out_list(BTD_NODE* n) {
+void out_list_nocolor(BTD_NODE* n) {
+    OUT_LIST_ST *t = (OUT_LIST_ST*)n;
+    
+    RET("%s (%s:%d", t->name, t->file->name, (int)(t->line));
+    if(t->dfile) { RET(" -> %s:%d)\n", t->dfile->name, (int)(t->dline));}
+    else { RET(")\n");}
+    return;
+}
+
+void out_list_color(BTD_NODE* n) {
     OUT_LIST_ST *t = (OUT_LIST_ST*)n;
     int i = 5;
     
@@ -177,6 +190,10 @@ int main(int argc, char **argv) {
                 usage(1);
             }
             switch(argv[i][1]) {
+                case 'c':
+                    colors = 0;
+                    out_list = out_list_nocolor;
+                    break;
                 case 'i':
                     head_file = 0;
                     break;
@@ -278,8 +295,9 @@ int main(int argc, char **argv) {
 static void usage(int n) {
     switch(n) {
         case 0:
-            RET("Usage: ./psa [-h -H --help] [-i] [-m] [-v num] [-e num] [-f func] [-t func] [names].\n");
+            RET("Usage: ./psa [-h -H --help] [-c] [-i] [-m] [-v num] [-e num] [-f func] [-t func] [names].\n");
             RET("Options:\n");
+            RET("        -c           程序默认使用shell颜色, 如果要输出到文件, 使用这个选项关闭它\n");
             RET("        -i           程序默认自动解析被包含的头文件, 使用这个选项关闭它\n");
             RET("        -m           程序默认解析带参宏定义, 使用这个选项关闭它\n");
             RET("        -v num       输出信息过滤\n");
