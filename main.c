@@ -544,7 +544,6 @@ static void parse_file(FILE_LIST_ST **file_list, const char *file_name, off_t fi
     rp = (char*)file_map;
 
     t = new_file_list(file_name);
-
     while(c_stat != C_FILE_END) {
         switch(c_stat) {
             case C_INDENT:
@@ -708,7 +707,7 @@ static void parse_file(FILE_LIST_ST **file_list, const char *file_name, off_t fi
                 else if(rp[i] == '{') {
                     for(count = 1, i++; count && rp[i] != '\0'; i++) {   //跳过全局结构体
                         if(rp[i] == '\n') line_count++;
-                        if(rp[i] == '\'' && (rp[i+1] == '{' || rp[i+1] == '}')) { i++; continue;}
+                        if(rp[i] == '\'' && (rp[i+1] == '{' || rp[i+1] == '}') && rp[i+2] == '\'') { i+=2; continue;}
                         else if(rp[i] == '{') count++;
                         else if(rp[i] == '}') count--;
                     }
